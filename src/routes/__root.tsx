@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PortoSeguro — Amarração e Segurança de Cargas" },
+      { title: "Techocean — Amarração e Segurança de Cargas" },
       {
         name: "description",
         content:
           "Projetamos amarrações e instalações que protegem cada produto até o destino.",
       },
-      { property: "og:title", content: "PortoSeguro — Amarração e Segurança de Cargas" },
+      { property: "og:title", content: "Techocean — Amarração e Segurança de Cargas" },
       {
         property: "og:description",
         content: "A segurança da sua carga começa antes de embarcar.",

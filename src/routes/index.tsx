@@ -6,13 +6,13 @@ import lashing from "@/assets/lashing.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "PortoSeguro — Amarração e Segurança de Cargas" },
+      { title: "Techocean — Amarração e Segurança de Cargas" },
       {
         name: "description",
         content:
           "Projetamos amarrações e instalações que protegem cada produto até o destino. 15+ anos de experiência, 27 portos atendidos, 0 incidentes de carga.",
       },
-      { property: "og:title", content: "PortoSeguro — Amarração e Segurança de Cargas" },
+      { property: "og:title", content: "Techocean — Amarração e Segurança de Cargas" },
       {
         property: "og:description",
         content:
@@ -74,7 +74,7 @@ function Index() {
 
         <nav className="relative z-10 flex items-center justify-between px-6 py-6 md:px-12">
           <span className="font-display text-lg font-bold tracking-tight">
-            Porto<span className="text-primary">Seguro</span>
+            Techocean
           </span>
           <a
             href="#contato"
@@ -223,9 +223,9 @@ function Index() {
       <footer className="border-t border-border px-6 py-8 md:px-12">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
           <span className="font-display font-bold text-foreground">
-            Porto<span className="text-primary">Seguro</span>
+            Techocean
           </span>
-          <p>© 2026 PortoSeguro. Precisão em cada amarração.</p>
+          <p>© 2026 Techocean. Precisão em cada amarração.</p>
         </div>
       </footer>
     </div>
