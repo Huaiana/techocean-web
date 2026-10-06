@@ -1,7 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowUpRight, ArrowDown, Compass, Anchor, ShieldCheck, Container } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import heroPort from "@/assets/hero-port.jpg";
 import lashing from "@/assets/lashing.jpg";
+import {
+  ErroAgendamentoApi,
+  salvarAgendamentoPendente,
+  solicitarAgendamento,
+  type DadosAgendamento,
+} from "@/services/agendamentos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,6 +66,60 @@ const services = [
 ];
 
 function Index() {
+  const navigate = useNavigate();
+  const [enviandoAgendamento, setEnviandoAgendamento] = useState(false);
+  const [pedirSenha, setPedirSenha] = useState(false);
+  const [erroAgendamento, setErroAgendamento] = useState("");
+  const [agendamentoConfirmado, setAgendamentoConfirmado] = useState(false);
+
+  async function enviarAgendamento(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const dados: DadosAgendamento = {
+      nome: String(form.get("nome")).trim(),
+      telefone: String(form.get("telefone")).trim(),
+      email: String(form.get("email")).trim(),
+      dataHora: String(form.get("dataHora")),
+      confirmacao: true,
+    };
+    const senha = String(form.get("senha") ?? "");
+
+    setErroAgendamento("");
+    setEnviandoAgendamento(true);
+
+    try {
+      await solicitarAgendamento({ ...dados, ...(senha ? { senha } : {}) });
+      formElement.reset();
+      setPedirSenha(false);
+      setAgendamentoConfirmado(true);
+    } catch (error) {
+      if (
+        error instanceof ErroAgendamentoApi &&
+        error.code === "CADASTRO_NECESSARIO"
+      ) {
+        salvarAgendamentoPendente(dados);
+        await navigate({ to: "/cadastro" });
+        return;
+      }
+
+      if (
+        error instanceof ErroAgendamentoApi &&
+        (error.code === "SENHA_NECESSARIA" || error.code === "SENHA_INVALIDA")
+      ) {
+        setPedirSenha(true);
+      }
+
+      setErroAgendamento(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível enviar a solicitação de visita.",
+      );
+    } finally {
+      setEnviandoAgendamento(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero */}
@@ -98,7 +159,7 @@ function Index() {
               href="#contato"
               className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
             >
-              Solicitar orçamento <ArrowUpRight className="size-4" />
+              Agendar visita <ArrowUpRight className="size-4" />
             </a>
             <a
               href="#servicos"
@@ -203,20 +264,107 @@ function Index() {
       {/* CTA / Contato */}
       <section id="contato" className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-6 py-20 text-center md:px-12 md:py-28">
-          <p className="eyebrow">/ 04 — Contato</p>
+          <p className="eyebrow">/ 04 — Agendamento</p>
           <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-bold leading-tight md:text-5xl">
-            Pronto para embarcar com segurança?
+            Solicite uma visita técnica
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
-            Conte com quem entende de amarração de cargas. Solicite um
-            orçamento e receba uma proposta técnica para a sua operação.
+            Informe seus dados e escolha a melhor data para nossa equipe entrar
+            em contato e confirmar a visita.
           </p>
-          <a
-            href="mailto:contato@portoseguro.com.br"
-            className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
+          <form
+            className="mx-auto mt-10 grid max-w-2xl gap-5 text-left sm:grid-cols-2"
+            onSubmit={enviarAgendamento}
           >
-            Solicitar orçamento <ArrowUpRight className="size-4" />
-          </a>
+            <label className="text-sm font-medium" htmlFor="agendamento-nome">
+              Nome completo
+              <input
+                id="agendamento-nome"
+                name="nome"
+                autoComplete="name"
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="agendamento-telefone">
+              Telefone
+              <input
+                id="agendamento-telefone"
+                name="telefone"
+                type="tel"
+                autoComplete="tel"
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="agendamento-email">
+              E-mail
+              <input
+                id="agendamento-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="agendamento-data-hora">
+              Data e horário desejados
+              <input
+                id="agendamento-data-hora"
+                name="dataHora"
+                type="datetime-local"
+                min={minDataHora()}
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            {pedirSenha && (
+              <label
+                className="text-sm font-medium sm:col-span-2"
+                htmlFor="agendamento-senha"
+              >
+                Senha do seu cadastro de usuário
+                <input
+                  id="agendamento-senha"
+                  name="senha"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+                />
+              </label>
+            )}
+            <label className="flex items-start gap-3 text-sm text-muted-foreground sm:col-span-2">
+              <input
+                name="confirmacao"
+                type="checkbox"
+                required
+                className="mt-1 size-4 accent-primary"
+              />
+              Confirmo que os dados estão corretos e solicito o agendamento da
+              visita técnica.
+            </label>
+            {erroAgendamento && (
+              <p className="text-sm text-destructive sm:col-span-2" role="alert">
+                {erroAgendamento}
+              </p>
+            )}
+            {agendamentoConfirmado && (
+              <p className="text-sm text-primary sm:col-span-2" role="status">
+                Solicitação confirmada. Nossa equipe entrará em contato para
+                confirmar a visita.
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={enviandoAgendamento}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] disabled:cursor-wait disabled:opacity-60 sm:col-span-2"
+            >
+              {enviandoAgendamento ? "Enviando..." : "Solicitar visita"}
+              {!enviandoAgendamento && <ArrowUpRight className="size-4" />}
+            </button>
+          </form>
         </div>
       </section>
 
@@ -230,4 +378,9 @@ function Index() {
       </footer>
     </div>
   );
+}
+
+function minDataHora() {
+  const localDate = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
 }
