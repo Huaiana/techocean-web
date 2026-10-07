@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight, ArrowDown, Compass, Anchor, ShieldCheck, Container, X, Send } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowUpRight, ArrowDown, Compass, Anchor, ShieldCheck, Container, X, Send, UserPlus } from "lucide-react";
 import { useState, type FormEvent, type ReactNode } from "react";
 import heroPort from "@/assets/hero-port.jpg";
 import lashing from "@/assets/lashing.jpg";
@@ -192,16 +192,26 @@ function Index() {
         <div className="hero-overlay absolute inset-0" />
 
         <nav className="relative z-10 flex items-center justify-between px-6 py-6 md:px-12">
-          <span className="font-display text-lg font-bold tracking-tight">
+          <Link to="/dashboard" className="font-display text-lg font-bold tracking-tight">
             Techocean
-          </span>
-          <button
-            type="button"
-            onClick={abrirMensagem}
-            className="rounded-full border border-input px-5 py-2 text-sm font-medium transition-colors hover:bg-secondary"
-          >
-            Fale conosco
-          </button>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/cadastro"
+              aria-label="Cadastre-se"
+              title="Cadastre-se"
+              className="inline-flex items-center gap-2 rounded-full border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+            >
+              <UserPlus className="size-4" /> <span className="hidden sm:inline">Cadastre-se</span>
+            </Link>
+            <button
+              type="button"
+              onClick={abrirMensagem}
+              className="rounded-full border border-input px-5 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+            >
+              Fale conosco
+            </button>
+          </div>
         </nav>
 
         <div className="relative z-10 mt-auto px-6 pb-16 md:px-12 md:pb-24">
