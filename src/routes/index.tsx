@@ -323,10 +323,14 @@ function Index() {
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {s.desc}
                 </p>
-                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                <button
+                  type="button"
+                  onClick={() => setServicoAberto(s)}
+                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-foreground"
+                >
                   Saiba mais
                   <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </span>
+                </button>
               </article>
             ))}
           </div>
