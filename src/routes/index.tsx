@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowUpRight, ArrowDown, Compass, Anchor, ShieldCheck, Container } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { ArrowUpRight, ArrowDown, Compass, Anchor, ShieldCheck, Container, X, Send } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import heroPort from "@/assets/hero-port.jpg";
 import lashing from "@/assets/lashing.jpg";
 import {
@@ -65,12 +65,64 @@ const services = [
   },
 ];
 
+function Painel({
+  titulo,
+  onFechar,
+  children,
+}: {
+  titulo: string;
+  onFechar: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label={titulo}
+      onClick={onFechar}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl md:p-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">{titulo}</h2>
+          <button
+            type="button"
+            onClick={onFechar}
+            aria-label="Fechar painel"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="mt-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 function Index() {
   const navigate = useNavigate();
+  const [painelAgendamento, setPainelAgendamento] = useState(false);
+  const [painelMensagem, setPainelMensagem] = useState(false);
   const [enviandoAgendamento, setEnviandoAgendamento] = useState(false);
   const [pedirSenha, setPedirSenha] = useState(false);
   const [erroAgendamento, setErroAgendamento] = useState("");
   const [agendamentoConfirmado, setAgendamentoConfirmado] = useState(false);
+  const [mensagemEnviada, setMensagemEnviada] = useState(false);
+
+  function abrirAgendamento() {
+    setErroAgendamento("");
+    setAgendamentoConfirmado(false);
+    setPainelAgendamento(true);
+  }
+
+  function abrirMensagem() {
+    setMensagemEnviada(false);
+    setPainelMensagem(true);
+  }
 
   async function enviarAgendamento(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,6 +172,12 @@ function Index() {
     }
   }
 
+  function enviarMensagem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    event.currentTarget.reset();
+    setMensagemEnviada(true);
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero */}
@@ -137,12 +195,13 @@ function Index() {
           <span className="font-display text-lg font-bold tracking-tight">
             Techocean
           </span>
-          <a
-            href="#contato"
+          <button
+            type="button"
+            onClick={abrirMensagem}
             className="rounded-full border border-input px-5 py-2 text-sm font-medium transition-colors hover:bg-secondary"
           >
             Fale conosco
-          </a>
+          </button>
         </nav>
 
         <div className="relative z-10 mt-auto px-6 pb-16 md:px-12 md:pb-24">
@@ -155,12 +214,13 @@ function Index() {
             destino.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-6">
-            <a
-              href="#contato"
+            <button
+              type="button"
+              onClick={abrirAgendamento}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
             >
               Agendar visita <ArrowUpRight className="size-4" />
-            </a>
+            </button>
             <a
               href="#servicos"
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -243,12 +303,13 @@ function Index() {
               fixação, nosso time segue protocolos rigorosos em campo. É assim
               que mantemos zero incidentes de carga em toda a nossa história.
             </p>
-            <a
-              href="#contato"
+            <button
+              type="button"
+              onClick={abrirAgendamento}
               className="mt-8 inline-flex items-center gap-2 rounded-full border border-input px-6 py-3 text-sm font-medium transition-colors hover:bg-secondary"
             >
               Agende uma visita técnica <ArrowUpRight className="size-4" />
-            </a>
+            </button>
           </div>
           <img
             src={lashing}
@@ -261,21 +322,23 @@ function Index() {
         </div>
       </section>
 
-      {/* CTA / Contato */}
-      <section id="contato" className="border-t border-border bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20 text-center md:px-12 md:py-28">
-          <p className="eyebrow">Agendamento</p>
-          <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-bold leading-tight md:text-5xl">
-            Solicite uma visita técnica
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
+      <footer className="border-t border-border px-6 py-8 md:px-12">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
+          <span className="font-display font-bold text-foreground">
+            Techocean
+          </span>
+          <p>© 2026 Techocean. Precisão em cada amarração.</p>
+        </div>
+      </footer>
+
+      {/* Painel de agendamento */}
+      {painelAgendamento && (
+        <Painel titulo="Solicite uma visita técnica" onFechar={() => setPainelAgendamento(false)}>
+          <p className="text-sm text-muted-foreground">
             Informe seus dados e escolha a melhor data para nossa equipe entrar
             em contato e confirmar a visita.
           </p>
-          <form
-            className="mx-auto mt-10 grid max-w-2xl gap-5 text-left sm:grid-cols-2"
-            onSubmit={enviarAgendamento}
-          >
+          <form className="mt-6 grid gap-5" onSubmit={enviarAgendamento}>
             <label className="text-sm font-medium" htmlFor="agendamento-nome">
               Nome completo
               <input
@@ -320,10 +383,7 @@ function Index() {
               />
             </label>
             {pedirSenha && (
-              <label
-                className="text-sm font-medium sm:col-span-2"
-                htmlFor="agendamento-senha"
-              >
+              <label className="text-sm font-medium" htmlFor="agendamento-senha">
                 Senha do seu cadastro de usuário
                 <input
                   id="agendamento-senha"
@@ -335,7 +395,7 @@ function Index() {
                 />
               </label>
             )}
-            <label className="flex items-start gap-3 text-sm text-muted-foreground sm:col-span-2">
+            <label className="flex items-start gap-3 text-sm text-muted-foreground">
               <input
                 name="confirmacao"
                 type="checkbox"
@@ -346,12 +406,12 @@ function Index() {
               visita técnica.
             </label>
             {erroAgendamento && (
-              <p className="text-sm text-destructive sm:col-span-2" role="alert">
+              <p className="text-sm text-destructive" role="alert">
                 {erroAgendamento}
               </p>
             )}
             {agendamentoConfirmado && (
-              <p className="text-sm text-primary sm:col-span-2" role="status">
+              <p className="text-sm text-primary" role="status">
                 Solicitação confirmada. Nossa equipe entrará em contato para
                 confirmar a visita.
               </p>
@@ -359,23 +419,67 @@ function Index() {
             <button
               type="submit"
               disabled={enviandoAgendamento}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] disabled:cursor-wait disabled:opacity-60 sm:col-span-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03] disabled:cursor-wait disabled:opacity-60"
             >
               {enviandoAgendamento ? "Enviando..." : "Solicitar visita"}
               {!enviandoAgendamento && <ArrowUpRight className="size-4" />}
             </button>
           </form>
-        </div>
-      </section>
+        </Painel>
+      )}
 
-      <footer className="border-t border-border px-6 py-8 md:px-12">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
-          <span className="font-display font-bold text-foreground">
-            Techocean
-          </span>
-          <p>© 2026 Techocean. Precisão em cada amarração.</p>
-        </div>
-      </footer>
+      {/* Painel de mensagem */}
+      {painelMensagem && (
+        <Painel titulo="Fale conosco" onFechar={() => setPainelMensagem(false)}>
+          <p className="text-sm text-muted-foreground">
+            Envie sua mensagem e nossa equipe responde no seu e-mail.
+          </p>
+          <form className="mt-6 grid gap-5" onSubmit={enviarMensagem}>
+            <label className="text-sm font-medium" htmlFor="mensagem-nome">
+              Nome
+              <input
+                id="mensagem-nome"
+                name="nome"
+                autoComplete="name"
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="mensagem-email">
+              E-mail
+              <input
+                id="mensagem-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            <label className="text-sm font-medium" htmlFor="mensagem-texto">
+              Mensagem
+              <textarea
+                id="mensagem-texto"
+                name="mensagem"
+                rows={5}
+                required
+                className="mt-2 w-full resize-none rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+            </label>
+            {mensagemEnviada && (
+              <p className="text-sm text-primary" role="status">
+                Mensagem enviada. Em breve entraremos em contato.
+              </p>
+            )}
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
+            >
+              Enviar mensagem <Send className="size-4" />
+            </button>
+          </form>
+        </Painel>
+      )}
     </div>
   );
 }
