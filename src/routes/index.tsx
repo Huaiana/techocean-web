@@ -185,7 +185,7 @@ function Index() {
 
       {/* História */}
       <section className="mx-auto max-w-6xl px-6 py-20 md:px-12 md:py-28">
-        <p className="eyebrow">/ 01 — Nossa história</p>
+        <p className="eyebrow">Nossa história</p>
         <div className="mt-6 grid gap-10 md:grid-cols-2 md:gap-16">
           <h2 className="text-3xl font-bold leading-tight md:text-4xl">
             Experiência construída no cais, projeto a projeto.
@@ -202,7 +202,7 @@ function Index() {
       {/* Serviços */}
       <section id="servicos" className="bg-card">
         <div className="mx-auto max-w-6xl px-6 py-20 md:px-12 md:py-28">
-          <p className="eyebrow">/ 02 — Serviços</p>
+          <p className="eyebrow">Serviços</p>
           <h2 className="mt-6 max-w-2xl text-3xl font-bold leading-tight md:text-4xl">
             Soluções completas para a sua operação
           </h2>
@@ -232,7 +232,7 @@ function Index() {
 
       {/* Na prática */}
       <section className="mx-auto max-w-6xl px-6 py-20 md:px-12 md:py-28">
-        <p className="eyebrow">/ 03 — Na prática</p>
+        <p className="eyebrow">Na prática</p>
         <div className="mt-6 grid items-center gap-10 md:grid-cols-2 md:gap-16">
           <div>
             <h2 className="text-3xl font-bold leading-tight md:text-4xl">
@@ -264,7 +264,7 @@ function Index() {
       {/* CTA / Contato */}
       <section id="contato" className="border-t border-border bg-card">
         <div className="mx-auto max-w-6xl px-6 py-20 text-center md:px-12 md:py-28">
-          <p className="eyebrow">/ 04 — Agendamento</p>
+          <p className="eyebrow">Agendamento</p>
           <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-bold leading-tight md:text-5xl">
             Solicite uma visita técnica
           </h2>

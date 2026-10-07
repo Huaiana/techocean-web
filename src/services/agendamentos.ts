@@ -22,7 +22,7 @@ export class ErroAgendamentoApi extends Error {
   }
 }
 
-const apiUrl = (import.meta.env.VITE_API_URL || "http://localhost:8081").replace(/\/+$/, "");
+const apiUrl = (import.meta.env["VITE_API_URL"] || "http://localhost:8081").replace(/\/+$/, "");
 const pendingVisitKey = "techocean.agendamento.pendente";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -49,12 +49,12 @@ export async function solicitarAgendamento(
 
   if (!response.ok) {
     const code =
-      isRecord(payload) && typeof payload.code === "string"
-        ? payload.code
+      isRecord(payload) && typeof payload["code"] === "string"
+        ? payload["code"]
         : "ERRO_AGENDAMENTO";
     const message =
-      isRecord(payload) && typeof payload.message === "string"
-        ? payload.message
+      isRecord(payload) && typeof payload["message"] === "string"
+        ? payload["message"]
         : `Não foi possível concluir o agendamento (HTTP ${response.status}).`;
     throw new ErroAgendamentoApi(message, code, response.status);
   }
@@ -74,17 +74,17 @@ export function lerAgendamentoPendente(): DadosAgendamento | null {
     const value: unknown = JSON.parse(saved);
     if (
       isRecord(value) &&
-      typeof value.nome === "string" &&
-      typeof value.telefone === "string" &&
-      typeof value.email === "string" &&
-      typeof value.dataHora === "string" &&
-      value.confirmacao === true
+      typeof value["nome"] === "string" &&
+      typeof value["telefone"] === "string" &&
+      typeof value["email"] === "string" &&
+      typeof value["dataHora"] === "string" &&
+      value["confirmacao"] === true
     ) {
       return {
-        nome: value.nome,
-        telefone: value.telefone,
-        email: value.email,
-        dataHora: value.dataHora,
+        nome: value["nome"],
+        telefone: value["telefone"],
+        email: value["email"],
+        dataHora: value["dataHora"],
         confirmacao: true,
       };
     }
