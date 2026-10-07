@@ -44,24 +44,56 @@ const services = [
     num: "01",
     title: "Consultoria operacional",
     desc: "Planejamento técnico para operações mais seguras, eficientes e previsíveis.",
+    detalhes:
+      "Analisamos toda a sua operação portuária para identificar riscos e oportunidades de melhoria. Nossa equipe elabora planos de operação sob medida, com cronogramas realistas e protocolos claros para cada etapa do embarque.",
+    topicos: [
+      "Análise de riscos da operação e do tipo de carga",
+      "Plano de embarque com cronograma e responsáveis",
+      "Treinamento das equipes de cais e bordo",
+      "Acompanhamento técnico durante a operação",
+    ],
   },
   {
     icon: Anchor,
     num: "02",
     title: "Amarração de cargas",
     desc: "Projetos de amarração sob medida para cada tipo de carga e modal de transporte.",
+    detalhes:
+      "Cada carga tem um comportamento diferente em movimento. Calculamos forças, ângulos e pontos de fixação para projetar a amarração ideal, seja para contêineres, cargas fracionadas, máquinas ou cargas especiais.",
+    topicos: [
+      "Cálculo de tensão e resistência das cintas e correntes",
+      "Projeto de amarração por tipo de carga e modal",
+      "Seleção de materiais certificados",
+      "Supervisão da amarração no embarque",
+    ],
   },
   {
     icon: ShieldCheck,
     num: "03",
     title: "Inspeção e compliance",
     desc: "Auditorias e laudos que garantem conformidade com normas internacionais.",
+    detalhes:
+      "Emitimos laudos técnicos e realizamos auditorias completas para garantir que sua operação esteja em conformidade com as normas nacionais e internacionais de transporte de cargas, evitando multas, avarias e atrasos.",
+    topicos: [
+      "Inspeção de amarração antes da partida",
+      "Laudos técnicos com registro fotográfico",
+      "Auditoria de conformidade com normas internacionais",
+      "Relatórios de não conformidade e plano de correção",
+    ],
   },
   {
     icon: Container,
     num: "04",
     title: "Instalações portuárias",
     desc: "Estruturas e sistemas de fixação instalados com precisão e rastreabilidade.",
+    detalhes:
+      "Projetamos e instalamos estruturas de fixação em terminais e embarcações, com materiais rastreáveis e documentação completa de cada instalação, do projeto executivo à entrega final.",
+    topicos: [
+      "Projeto executivo de estruturas de fixação",
+      "Instalação com equipe especializada",
+      "Rastreabilidade de materiais e componentes",
+      "Manutenção preventiva e inspeções periódicas",
+    ],
   },
 ];
 
@@ -107,6 +139,7 @@ function Index() {
   const navigate = useNavigate();
   const [painelAgendamento, setPainelAgendamento] = useState(false);
   const [painelMensagem, setPainelMensagem] = useState(false);
+  const [servicoAberto, setServicoAberto] = useState<(typeof services)[number] | null>(null);
   const [enviandoAgendamento, setEnviandoAgendamento] = useState(false);
   const [pedirSenha, setPedirSenha] = useState(false);
   const [erroAgendamento, setErroAgendamento] = useState("");
@@ -290,10 +323,14 @@ function Index() {
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {s.desc}
                 </p>
-                <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                <button
+                  type="button"
+                  onClick={() => setServicoAberto(s)}
+                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-foreground"
+                >
                   Saiba mais
                   <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </span>
+                </button>
               </article>
             ))}
           </div>
@@ -340,6 +377,39 @@ function Index() {
           <p>© 2026 Techocean. Precisão em cada amarração.</p>
         </div>
       </footer>
+
+      {/* Painel de detalhes do serviço */}
+      {servicoAberto && (
+        <Painel titulo={servicoAberto.title} onFechar={() => setServicoAberto(null)}>
+          <div className="flex items-center gap-3">
+            <servicoAberto.icon className="size-7 text-primary" />
+            <span className="font-mono text-sm text-muted-foreground">
+              Serviço {servicoAberto.num}
+            </span>
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            {servicoAberto.detalhes}
+          </p>
+          <ul className="mt-5 grid gap-3">
+            {servicoAberto.topicos.map((topico) => (
+              <li key={topico} className="flex items-start gap-3 text-sm">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                {topico}
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => {
+              setServicoAberto(null);
+              abrirAgendamento();
+            }}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
+          >
+            Agendar visita técnica <ArrowUpRight className="size-4" />
+          </button>
+        </Painel>
+      )}
 
       {/* Painel de agendamento */}
       {painelAgendamento && (
