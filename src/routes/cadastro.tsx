@@ -1,66 +1,59 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
-import {
-  limparAgendamentoPendente,
-  lerAgendamentoPendente,
-  solicitarAgendamento,
-  type DadosAgendamento,
-} from "@/services/agendamentos";
+import { useState, type FormEvent } from "react";
 import { cadastroSchema } from "@/models/cadastro";
+import { cadastrarCliente } from "@/services/clientes";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
-    meta: [{ title: "Cadastro de usuário — Techocean" }],
+    meta: [{ title: "Cadastro de cliente — Techocean" }],
   }),
   component: Cadastro,
 });
 
+const campoClasse =
+  "mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring";
+
 function Cadastro() {
-  const [agendamento, setAgendamento] = useState<DadosAgendamento | null>(null);
-  const [carregado, setCarregado] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [erro, setErro] = useState("");
+  const [erros, setErros] = useState<Record<string, string>>({});
+  const [erroGeral, setErroGeral] = useState("");
   const [sucesso, setSucesso] = useState(false);
 
-  useEffect(() => {
-    setAgendamento(lerAgendamentoPendente());
-    setCarregado(true);
-  }, []);
-
-  async function cadastrarEAgendar(event: FormEvent<HTMLFormElement>) {
+  async function cadastrar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!agendamento) {
-      return;
-    }
+    setErros({});
+    setErroGeral("");
 
-    setErro("");
-    setEnviando(true);
     const form = new FormData(event.currentTarget);
-
     const validacao = cadastroSchema.safeParse({
-      ...agendamento,
+      nome: String(form.get("nome") ?? ""),
       cpf: String(form.get("cpf") ?? ""),
+      telefone: String(form.get("telefone") ?? ""),
+      email: String(form.get("email") ?? ""),
       senha: String(form.get("senha") ?? ""),
     });
+
     if (!validacao.success) {
-      setErro(validacao.error.issues[0]?.message ?? "Dados inválidos.");
-      setEnviando(false);
+      const porCampo: Record<string, string> = {};
+      for (const issue of validacao.error.issues) {
+        const campo = String(issue.path[0] ?? "");
+        if (campo && !porCampo[campo]) {
+          porCampo[campo] = issue.message;
+        }
+      }
+      setErros(porCampo);
       return;
     }
 
+    setEnviando(true);
     try {
-      await solicitarAgendamento({
-        ...agendamento,
-        cpf: validacao.data.cpf.replace(/\D/g, ""),
-        senha: validacao.data.senha,
-      });
-      limparAgendamentoPendente();
+      await cadastrarCliente(validacao.data);
       setSucesso(true);
     } catch (error) {
-      setErro(
+      setErroGeral(
         error instanceof Error
           ? error.message
-          : "Não foi possível concluir o cadastro e o agendamento.",
+          : "Não foi possível concluir o cadastro.",
       );
     } finally {
       setEnviando(false);
@@ -77,10 +70,10 @@ function Cadastro() {
         {sucesso ? (
           <div className="mt-8" role="status">
             <p className="eyebrow">Cadastro confirmado</p>
-            <h1 className="mt-3 text-3xl font-bold">Visita solicitada!</h1>
+            <h1 className="mt-3 text-3xl font-bold">Cadastro criado!</h1>
             <p className="mt-4 text-muted-foreground">
-              Seu cadastro foi criado e a solicitação da visita foi confirmada.
-              Nossa equipe entrará em contato pelo telefone informado.
+              Seu cadastro de cliente foi realizado com sucesso. Nossa equipe
+              entrará em contato pelo telefone ou e-mail informado.
             </p>
             <Link
               to="/"
@@ -91,89 +84,118 @@ function Cadastro() {
           </div>
         ) : (
           <>
-            <p className="eyebrow mt-8">Cadastro de usuário</p>
+            <p className="eyebrow mt-8">Cadastro de cliente</p>
             <h1 className="mt-3 text-3xl font-bold">Crie seu cadastro</h1>
             <p className="mt-4 text-muted-foreground">
-              Para solicitar uma visita, precisamos criar seu cadastro de
-              usuário.
+              Preencha seus dados para se cadastrar como cliente.
             </p>
 
-            {!carregado ? (
-              <p className="mt-8 text-muted-foreground">Carregando solicitação...</p>
-            ) : !agendamento ? (
-              <div className="mt-8" role="alert">
-                <p className="text-destructive">
-                  Não encontramos uma solicitação de visita pendente. Volte ao
-                  site e inicie o agendamento novamente.
-                </p>
-                <Link
-                  to="/"
-                  className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground"
-                >
-                  Ir para o site
-                </Link>
-              </div>
-            ) : (
-              <form className="mt-8 space-y-5" onSubmit={cadastrarEAgendar}>
-                <div className="rounded-xl border border-border p-4 text-sm">
-                  <p>
-                    <span className="font-semibold">Nome:</span> {agendamento.nome}
-                  </p>
-                  <p className="mt-2">
-                    <span className="font-semibold">E-mail:</span> {agendamento.email}
-                  </p>
-                  <p className="mt-2">
-                    <span className="font-semibold">Telefone:</span>{" "}
-                    {agendamento.telefone}
-                  </p>
-                  <p className="mt-2">
-                    <span className="font-semibold">Visita:</span>{" "}
-                    {new Date(agendamento.dataHora).toLocaleString("pt-BR")}
-                  </p>
-                </div>
-
-                <label className="block text-sm font-medium" htmlFor="cpf">
-                  CPF
-                  <input
-                    id="cpf"
-                    name="cpf"
-                    autoComplete="off"
-                    required
-                    className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </label>
-
-                <label className="block text-sm font-medium" htmlFor="senha">
-                  Crie uma senha para seu usuário
-                  <input
-                    id="senha"
-                    name="senha"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={8}
-                    required
-                    className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
-                  />
-                  <span className="mt-1 block text-xs text-muted-foreground">
-                    Use pelo menos 8 caracteres.
+            <form className="mt-8 space-y-5" onSubmit={cadastrar} noValidate>
+              <label className="block text-sm font-medium" htmlFor="nome">
+                Nome completo
+                <input
+                  id="nome"
+                  name="nome"
+                  autoComplete="name"
+                  required
+                  className={campoClasse}
+                />
+                {erros["nome"] && (
+                  <span className="mt-1 block text-xs text-destructive" role="alert">
+                    {erros["nome"]}
                   </span>
-                </label>
-
-                {erro && (
-                  <p className="text-sm text-destructive" role="alert">
-                    {erro}
-                  </p>
                 )}
+              </label>
 
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
-                >
-                  {enviando ? "Cadastrando e agendando..." : "Cadastrar e confirmar visita"}
-                </button>
-              </form>
-            )}
+              <label className="block text-sm font-medium" htmlFor="cpf">
+                CPF
+                <input
+                  id="cpf"
+                  name="cpf"
+                  autoComplete="off"
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  required
+                  className={campoClasse}
+                />
+                {erros["cpf"] && (
+                  <span className="mt-1 block text-xs text-destructive" role="alert">
+                    {erros["cpf"]}
+                  </span>
+                )}
+              </label>
+
+              <label className="block text-sm font-medium" htmlFor="telefone">
+                Telefone
+                <input
+                  id="telefone"
+                  name="telefone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="(00) 90000-0000"
+                  required
+                  className={campoClasse}
+                />
+                {erros["telefone"] && (
+                  <span className="mt-1 block text-xs text-destructive" role="alert">
+                    {erros["telefone"]}
+                  </span>
+                )}
+              </label>
+
+              <label className="block text-sm font-medium" htmlFor="email">
+                E-mail
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className={campoClasse}
+                />
+                {erros["email"] && (
+                  <span className="mt-1 block text-xs text-destructive" role="alert">
+                    {erros["email"]}
+                  </span>
+                )}
+              </label>
+
+              <label className="block text-sm font-medium" htmlFor="senha">
+                Senha
+                <input
+                  id="senha"
+                  name="senha"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                  className={campoClasse}
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Use pelo menos 8 caracteres, com letras e números.
+                </span>
+                {erros["senha"] && (
+                  <span className="mt-1 block text-xs text-destructive" role="alert">
+                    {erros["senha"]}
+                  </span>
+                )}
+              </label>
+
+              {erroGeral && (
+                <p className="text-sm text-destructive" role="alert">
+                  {erroGeral}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={enviando}
+                className="w-full rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+              >
+                {enviando ? "Cadastrando..." : "Cadastrar"}
+              </button>
+            </form>
           </>
         )}
       </section>
