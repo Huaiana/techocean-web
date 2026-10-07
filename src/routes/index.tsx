@@ -70,7 +70,7 @@ const services = [
   {
     icon: ShieldCheck,
     num: "03",
-    title: "Inspeção e compliance",
+    title: "Inspeção e conformidade",
     desc: "Auditorias e laudos que garantem conformidade com normas internacionais.",
     detalhes:
       "Emitimos laudos técnicos e realizamos auditorias completas para garantir que sua operação esteja em conformidade com as normas nacionais e internacionais de transporte de cargas, evitando multas, avarias e atrasos.",
