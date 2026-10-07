@@ -44,24 +44,56 @@ const services = [
     num: "01",
     title: "Consultoria operacional",
     desc: "Planejamento técnico para operações mais seguras, eficientes e previsíveis.",
+    detalhes:
+      "Analisamos toda a sua operação portuária para identificar riscos e oportunidades de melhoria. Nossa equipe elabora planos de operação sob medida, com cronogramas realistas e protocolos claros para cada etapa do embarque.",
+    topicos: [
+      "Análise de riscos da operação e do tipo de carga",
+      "Plano de embarque com cronograma e responsáveis",
+      "Treinamento das equipes de cais e bordo",
+      "Acompanhamento técnico durante a operação",
+    ],
   },
   {
     icon: Anchor,
     num: "02",
     title: "Amarração de cargas",
     desc: "Projetos de amarração sob medida para cada tipo de carga e modal de transporte.",
+    detalhes:
+      "Cada carga tem um comportamento diferente em movimento. Calculamos forças, ângulos e pontos de fixação para projetar a amarração ideal, seja para contêineres, cargas fracionadas, máquinas ou cargas especiais.",
+    topicos: [
+      "Cálculo de tensão e resistência das cintas e correntes",
+      "Projeto de amarração por tipo de carga e modal",
+      "Seleção de materiais certificados",
+      "Supervisão da amarração no embarque",
+    ],
   },
   {
     icon: ShieldCheck,
     num: "03",
     title: "Inspeção e compliance",
     desc: "Auditorias e laudos que garantem conformidade com normas internacionais.",
+    detalhes:
+      "Emitimos laudos técnicos e realizamos auditorias completas para garantir que sua operação esteja em conformidade com as normas nacionais e internacionais de transporte de cargas, evitando multas, avarias e atrasos.",
+    topicos: [
+      "Inspeção de amarração antes da partida",
+      "Laudos técnicos com registro fotográfico",
+      "Auditoria de conformidade com normas internacionais",
+      "Relatórios de não conformidade e plano de correção",
+    ],
   },
   {
     icon: Container,
     num: "04",
     title: "Instalações portuárias",
     desc: "Estruturas e sistemas de fixação instalados com precisão e rastreabilidade.",
+    detalhes:
+      "Projetamos e instalamos estruturas de fixação em terminais e embarcações, com materiais rastreáveis e documentação completa de cada instalação, do projeto executivo à entrega final.",
+    topicos: [
+      "Projeto executivo de estruturas de fixação",
+      "Instalação com equipe especializada",
+      "Rastreabilidade de materiais e componentes",
+      "Manutenção preventiva e inspeções periódicas",
+    ],
   },
 ];
 
@@ -107,6 +139,7 @@ function Index() {
   const navigate = useNavigate();
   const [painelAgendamento, setPainelAgendamento] = useState(false);
   const [painelMensagem, setPainelMensagem] = useState(false);
+  const [servicoAberto, setServicoAberto] = useState<(typeof services)[number] | null>(null);
   const [enviandoAgendamento, setEnviandoAgendamento] = useState(false);
   const [pedirSenha, setPedirSenha] = useState(false);
   const [erroAgendamento, setErroAgendamento] = useState("");
