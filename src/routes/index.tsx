@@ -317,7 +317,6 @@ function Index() {
               >
                 <div className="flex items-start justify-between">
                   <s.icon className="size-8 text-primary" />
-                  <span className="font-mono text-sm text-muted-foreground">{s.num}</span>
                 </div>
                 <h3 className="mt-8 text-2xl font-semibold">{s.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
