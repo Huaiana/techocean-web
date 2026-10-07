@@ -378,6 +378,39 @@ function Index() {
         </div>
       </footer>
 
+      {/* Painel de detalhes do serviço */}
+      {servicoAberto && (
+        <Painel titulo={servicoAberto.title} onFechar={() => setServicoAberto(null)}>
+          <div className="flex items-center gap-3">
+            <servicoAberto.icon className="size-7 text-primary" />
+            <span className="font-mono text-sm text-muted-foreground">
+              Serviço {servicoAberto.num}
+            </span>
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            {servicoAberto.detalhes}
+          </p>
+          <ul className="mt-5 grid gap-3">
+            {servicoAberto.topicos.map((topico) => (
+              <li key={topico} className="flex items-start gap-3 text-sm">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                {topico}
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => {
+              setServicoAberto(null);
+              abrirAgendamento();
+            }}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.03]"
+          >
+            Agendar visita técnica <ArrowUpRight className="size-4" />
+          </button>
+        </Painel>
+      )}
+
       {/* Painel de agendamento */}
       {painelAgendamento && (
         <Painel titulo="Solicite uma visita técnica" onFechar={() => setPainelAgendamento(false)}>
