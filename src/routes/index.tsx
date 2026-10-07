@@ -317,7 +317,6 @@ function Index() {
               >
                 <div className="flex items-start justify-between">
                   <s.icon className="size-8 text-primary" />
-                  <span className="font-mono text-sm text-muted-foreground">{s.num}</span>
                 </div>
                 <h3 className="mt-8 text-2xl font-semibold">{s.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -383,9 +382,6 @@ function Index() {
         <Painel titulo={servicoAberto.title} onFechar={() => setServicoAberto(null)}>
           <div className="flex items-center gap-3">
             <servicoAberto.icon className="size-7 text-primary" />
-            <span className="font-mono text-sm text-muted-foreground">
-              Serviço {servicoAberto.num}
-            </span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             {servicoAberto.detalhes}
