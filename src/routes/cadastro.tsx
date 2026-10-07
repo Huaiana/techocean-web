@@ -6,6 +6,7 @@ import {
   solicitarAgendamento,
   type DadosAgendamento,
 } from "@/services/agendamentos";
+import { cadastroSchema } from "@/models/cadastro";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
@@ -36,11 +37,22 @@ function Cadastro() {
     setEnviando(true);
     const form = new FormData(event.currentTarget);
 
+    const validacao = cadastroSchema.safeParse({
+      ...agendamento,
+      cpf: String(form.get("cpf") ?? ""),
+      senha: String(form.get("senha") ?? ""),
+    });
+    if (!validacao.success) {
+      setErro(validacao.error.issues[0]?.message ?? "Dados inválidos.");
+      setEnviando(false);
+      return;
+    }
+
     try {
       await solicitarAgendamento({
         ...agendamento,
-        cpf: String(form.get("cpf")).trim(),
-        senha: String(form.get("senha")),
+        cpf: validacao.data.cpf.replace(/\D/g, ""),
+        senha: validacao.data.senha,
       });
       limparAgendamentoPendente();
       setSucesso(true);
