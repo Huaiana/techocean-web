@@ -1,19 +1,8 @@
 import { z } from "zod";
 
-/** Valida CPF pelos dígitos verificadores. */
+/** CPF precisa ter os 11 dígitos; duplicidade é verificada pelo back-end. */
 export function cpfValido(valor: string): boolean {
-  const cpf = valor.replace(/\D/g, "");
-  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-  const digito = (base: string, peso: number) => {
-    let soma = 0;
-    for (const n of base) soma += Number(n) * peso--;
-    const resto = (soma * 10) % 11;
-    return resto === 10 ? 0 : resto;
-  };
-  return (
-    digito(cpf.slice(0, 9), 10) === Number(cpf[9]) &&
-    digito(cpf.slice(0, 10), 11) === Number(cpf[10])
-  );
+  return /^\d{11}$/.test(valor.replace(/\D/g, ""));
 }
 
 /** Requisitos do cadastro de usuário (mesmas regras que o back-end deve aplicar). */
@@ -24,7 +13,7 @@ export const cadastroSchema = z.object({
     .string()
     .trim()
     .refine((t) => /^\d{10,11}$/.test(t.replace(/\D/g, "")), "Telefone deve ter DDD + número."),
-  cpf: z.string().trim().refine(cpfValido, "CPF inválido."),
+  cpf: z.string().trim().refine(cpfValido, "CPF incompleto: informe os 11 dígitos."),
   senha: z
     .string()
     .min(8, "A senha deve ter pelo menos 8 caracteres.")

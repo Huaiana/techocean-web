@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { cadastroSchema } from "@/models/cadastro";
-import { cadastrarCliente } from "@/services/clientes";
+import { cadastrarCliente, ErroClienteApi } from "@/services/clientes";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
@@ -50,11 +50,18 @@ function Cadastro() {
       await cadastrarCliente(validacao.data);
       setSucesso(true);
     } catch (error) {
-      setErroGeral(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível concluir o cadastro.",
-      );
+      if (
+        error instanceof ErroClienteApi &&
+        (error.code.includes("CPF") || error.message.toLowerCase().includes("cpf"))
+      ) {
+        setErros({ cpf: error.message });
+      } else {
+        setErroGeral(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível concluir o cadastro.",
+        );
+      }
     } finally {
       setEnviando(false);
     }
