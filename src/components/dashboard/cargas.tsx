@@ -71,7 +71,7 @@ export function Cargas() {
             {campos.map((campo) => (
               <label key={campo.nome} className="grid content-start gap-2 text-sm" htmlFor={`carga-${campo.nome}`}>
                 {campo.titulo}
-                <input id={`carga-${campo.nome}`} name={campo.nome} type={campo.tipo} step={campo.tipo === "number" ? "any" : undefined} required disabled={cadastro.isPending} aria-invalid={Boolean(erros[campo.nome])} aria-describedby={erros[campo.nome] ? `erro-${campo.nome}` : undefined} className="w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                <input id={`carga-${campo.nome}`} aria-label={campo.titulo} name={campo.nome} type={campo.tipo} step={campo.tipo === "number" ? "any" : undefined} required disabled={cadastro.isPending} aria-invalid={Boolean(erros[campo.nome])} aria-describedby={erros[campo.nome] ? `erro-${campo.nome}` : undefined} className="w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
                 {erros[campo.nome] && <span id={`erro-${campo.nome}`} className="text-destructive">{erros[campo.nome]}</span>}
               </label>
             ))}
