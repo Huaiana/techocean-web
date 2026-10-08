@@ -1,12 +1,23 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { secoes } from "@/lib/dashboard-secoes";
+import { Cargas } from "@/components/dashboard/cargas";
 
 export const Route = createFileRoute("/dashboard/$secao")({
   loader: ({ params }) => {
     const secao = secoes.find((s) => s.slug === params.secao);
     if (!secao) throw notFound();
     return { slug: secao.slug };
+  },
+  head: ({ loaderData }) => {
+    const secao = secoes.find((s) => s.slug === loaderData?.slug);
+    const titulo = `${secao?.nome ?? "Seção"} — Techocean`;
+    const descricao = secao?.descricao ?? "Gestão operacional Techocean.";
+    return { meta: [
+      { title: titulo }, { name: "description", content: descricao },
+      { property: "og:title", content: titulo }, { property: "og:description", content: descricao },
+      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+    ] };
   },
   notFoundComponent: () => <p className="text-muted-foreground">Seção não encontrada.</p>,
   component: SecaoPage,
@@ -16,13 +27,14 @@ const campo = "w-full rounded-md border border-input bg-background px-3 py-2 tex
 
 function SecaoPage() {
   const { slug } = Route.useLoaderData();
-  const secao = secoes.find((s) => s.slug === slug)!;
+  const secao = secoes.find((s) => s.slug === slug);
+  if (!secao) return <p>Seção não encontrada.</p>;
   return (
     <div>
       <p className="eyebrow mb-2">Painel</p>
       <h1 className="text-3xl font-bold">{secao.nome}</h1>
       <p className="mb-8 mt-2 text-muted-foreground">{secao.descricao}</p>
-      {slug === "mensagens" ? <Mensagens /> : slug === "orcamento" ? <Orcamento /> : (
+      {slug === "carga" ? <Cargas /> : slug === "mensagens" ? <Mensagens /> : slug === "orcamento" ? <Orcamento /> : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-left text-sm">
             <thead className="bg-card text-muted-foreground">
