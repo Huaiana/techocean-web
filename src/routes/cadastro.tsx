@@ -5,7 +5,14 @@ import { cadastrarCliente, ErroClienteApi } from "@/services/clientes";
 
 export const Route = createFileRoute("/cadastro")({
   head: () => ({
-    meta: [{ title: "Cadastro de cliente — Techocean" }],
+    meta: [
+      { title: "Cadastro de cliente — Techocean" },
+      { name: "description", content: "Cadastro de clientes Techocean." },
+      { property: "og:title", content: "Cadastro de cliente — Techocean" },
+      { property: "og:description", content: "Cadastro de clientes Techocean." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
   }),
   component: Cadastro,
 });
