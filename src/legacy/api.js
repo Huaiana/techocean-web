@@ -4,8 +4,8 @@ export const PRODUCTION_API_URL = "https://techocean-api.huaydarc.workers.dev";
 export const API_REQUEST_TIMEOUT_MS = 15_000;
 const ACCESS_TOKEN_STORAGE_KEY = "techocean.accessToken";
 
-export function resolveApiBaseUrl(env = import.meta.env) {
-  const configuredBase = env?.VITE_API_URL || PRODUCTION_API_URL;
+export function resolveApiBaseUrl(_env = import.meta.env) {
+  const configuredBase = LOCAL_API_URL; // same-origin relay (src/routes/api/$.ts)
   return configuredBase.replace(/\/+$/, "");
 }
 
