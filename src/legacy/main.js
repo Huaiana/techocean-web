@@ -2629,3 +2629,5 @@ async function getRecordById(endpoint, id) {
 }
 
 if (app) renderRoute();
+// Plain-JS app: any edit needs a full page reload in the preview.
+if (import.meta.hot) import.meta.hot.decline();
