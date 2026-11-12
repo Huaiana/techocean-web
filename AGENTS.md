@@ -29,3 +29,4 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 - The Techocean site lives in src/legacy (plain JS from the original repo) and is mounted once from __root; TanStack routes index/$ render nothing so the legacy router owns all paths without remounting.
+- Browser calls go to same-origin /api/*, relayed by src/routes/api/$.ts to the Techocean worker API, because the worker's CORS allow-list rejects Lovable origins.
