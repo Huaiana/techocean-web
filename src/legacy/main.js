@@ -1115,7 +1115,7 @@ async function handleResourceAction(action, slug, id, label = "") {
     return;
   }
   try {
-    if (action !== "print" || !record) record = await getRecordById(definition.endpoint, id);
+    if (!record) record = await getRecordById(definition.endpoint, id);
     record = record?.data || record;
     if (slug === "servico" && action !== "edit" && action !== "edit-value") {
       const value = readServiceValues()[record.id];
@@ -2629,3 +2629,5 @@ async function getRecordById(endpoint, id) {
 }
 
 if (app) renderRoute();
+// Plain-JS app: any edit needs a full page reload in the preview.
+if (import.meta.hot) import.meta.hot.decline();
