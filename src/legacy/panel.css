@@ -47,3 +47,6 @@
 
 .clickable-row { cursor: pointer; }
 .clickable-row:hover td, .clickable-row:focus-visible td { background: color-mix(in srgb, currentColor 8%, transparent); }
+.dashboard .charge-top-row{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) minmax(0,150px);gap:16px;align-items:start}
+.dashboard .charge-top-row input{min-height:44px}
+@media(max-width:720px){.dashboard .charge-top-row{grid-template-columns:1fr}}
