@@ -50,3 +50,11 @@
 .dashboard .charge-top-row{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) minmax(0,150px);gap:16px;align-items:start}
 .dashboard .charge-top-row input{min-height:44px}
 @media(max-width:720px){.dashboard .charge-top-row{grid-template-columns:1fr}}
+
+.cargo-toggle { background: none; border: 0; cursor: pointer; font-size: 1rem; color: inherit; padding: 0 .25rem; transition: transform .2s; }
+.cargo-ref-row.open .cargo-toggle, .cargo-ref-row:hover .cargo-toggle { transform: rotate(90deg); }
+.cargo-detail-row { display: none; }
+.cargo-ref-row.open + .cargo-detail-row, .cargo-ref-row:hover + .cargo-detail-row, .cargo-detail-row:hover { display: table-row; }
+.cargo-detail { display: grid; grid-template-columns: minmax(160px, 1fr) 2fr; gap: 1rem; padding: .5rem .75rem; border-left: 3px solid currentColor; }
+.cargo-detail p { margin: .25rem 0 0; }
+@media (max-width: 640px) { .cargo-detail { grid-template-columns: 1fr; } }
