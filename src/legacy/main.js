@@ -422,8 +422,9 @@ function renderCargas(records) {
 export function renderCargoReferenceSection() {
   try {
     const records = readDatabaseEntries("carga");
-    const rows = records.map((entry) => `<tr class="clickable-row" tabindex="0" role="button" title="Usar este tipo em uma nova carga" data-use-cargo="${esc(entry.codigo)}"><td>${valueText(entry.codigo)}</td><td>${valueText(entry.tipoCarga)}</td><td>${valueText(entry.conteineres)}</td><td>${valueText(entry.servicos)}</td><td>${valueText(entry.descricao)}</td>${isAdmin() ? `<td><button type="button" class="small-action" data-edit-cargo-ref="${esc(entry.id)}">Editar</button></td>` : ""}</tr>`).join("");
-    return `<section class="data-panel" id="cargo-reference-section"><div class="panel-heading"><div><span class="eyebrow">CONSULTA / REFERÊNCIAS</span><h2>Tipos de carga</h2></div></div><div id="database-form-slot"></div><p class="dash-description">Clique em um tipo para iniciar uma nova carga com ele. Verifique a compatibilidade e os limites do equipamento antes da operação.</p>${rows ? `<div class="table-scroll"><table class="records-table"><thead><tr><th>ID da carga</th><th>Nome da carga</th><th>IDs dos contêineres</th><th>IDs dos serviços</th><th>Descrição</th>${isAdmin() ? "<th>Ações</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="muted">Nenhuma referência de carga cadastrada neste navegador.</p>`}</section>`;
+    const cols = isAdmin() ? 5 : 4;
+    const rows = records.map((entry) => `<tr class="clickable-row cargo-ref-row" tabindex="0" role="button" title="Usar este tipo em uma nova carga" data-use-cargo="${esc(entry.codigo)}"><td><button type="button" class="cargo-toggle" data-toggle-cargo-detail aria-label="Mostrar contêineres e descrição" aria-expanded="false">▸</button></td><td>${valueText(entry.codigo)}</td><td>${valueText(entry.tipoCarga)}</td><td>${valueText(entry.servicos)}</td>${isAdmin() ? `<td><button type="button" class="small-action" data-edit-cargo-ref="${esc(entry.id)}">Editar</button></td>` : ""}</tr><tr class="cargo-detail-row"><td colspan="${cols}"><div class="cargo-detail"><div><strong>IDs dos contêineres</strong><p>${valueText(entry.conteineres)}</p></div><div><strong>Descrição</strong><p>${valueText(entry.descricao)}</p></div></div></td></tr>`).join("");
+    return `<section class="data-panel" id="cargo-reference-section"><div class="panel-heading"><div><span class="eyebrow">CONSULTA / REFERÊNCIAS</span><h2>Tipos de carga</h2></div></div><div id="database-form-slot"></div><p class="dash-description">Passe o mouse ou clique na seta para ver os contêineres e a descrição. Clique em um tipo para iniciar uma nova carga com ele.</p>${rows ? `<div class="table-scroll"><table class="records-table cargo-ref-table"><thead><tr><th aria-label="Detalhes"></th><th>ID da carga</th><th>Nome da carga</th><th>IDs dos serviços</th>${isAdmin() ? "<th>Ações</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="muted">Nenhuma referência de carga cadastrada neste navegador.</p>`}</section>`;
   } catch (error) {
     return `<div id="cargo-reference-section" class="load-error" role="alert">Não foi possível carregar as referências de carga: ${esc(error.message)}</div>`;
   }
@@ -2179,6 +2180,13 @@ if (app) app.addEventListener("click", async (event) => {
     const chargeForm = document.querySelector('form[data-form="charge"]');
     if (chargeForm) chargeForm.requestSubmit();
     else showSectionError("Abra uma carga com \"Nova carga\" ou \"Editar\" na tabela antes de salvar.");
+    return;
+  }
+  const cargoToggle = event.target.closest("[data-toggle-cargo-detail]");
+  if (cargoToggle) {
+    const row = cargoToggle.closest("tr");
+    const open = row.classList.toggle("open");
+    cargoToggle.setAttribute("aria-expanded", String(open));
     return;
   }
   const cargoRow = event.target.closest("[data-use-cargo]");
