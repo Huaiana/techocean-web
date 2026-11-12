@@ -453,11 +453,12 @@ export function renderCrudSection(records, section, setupStatus = null) {
 export function renderContainerReferenceSection() {
   try {
     const records = readDatabaseEntries("conteiner");
+    const cargos = readDatabaseEntries("carga");
     const fields = [{ name: "codigo", label: "ID" }, ...getDatabaseCategory("conteiner").fields.filter((field) => field.name !== "situacao")];
     const table = records.length
-      ? `<div class="table-scroll"><table class="records-table"><thead><tr>${fields.map((field) => `<th>${esc(field.label)}</th>`).join("")}</tr></thead><tbody>${records.map((record) => `<tr>${fields.map((field) => `<td>${valueText(record[field.name])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`
+      ? `<div class="table-scroll"><table class="records-table"><thead><tr>${fields.map((field) => `<th>${esc(field.label)}</th>`).join("")}${isAdmin() ? "<th>Ações</th>" : ""}</tr></thead><tbody>${records.map((record) => `<tr>${fields.map((field) => `<td>${field.name === "cargas" ? valueText(linkedReferences(record.cargas, cargos, "tipoCarga") || "Não vinculado") : valueText(record[field.name])}</td>`).join("")}${isAdmin() ? `<td><button type="button" class="small-action" data-edit-container-links="${esc(record.id)}">Vincular cargas</button></td>` : ""}</tr>`).join("")}</tbody></table></div>`
       : `<p class="muted">Nenhuma referência de contêiner cadastrada neste navegador.</p>`;
-    return `<section class="data-panel" id="container-reference-section"><div class="panel-heading"><div><span class="eyebrow">CONSULTA / REFERÊNCIAS</span><h2>Tipos de contêiner</h2></div></div><p class="dash-description">Especificações de referência armazenadas neste navegador. Confira as medidas e capacidades do equipamento utilizado antes da operação.</p>${table}</section>`;
+    return `<section class="data-panel" id="container-reference-section"><div class="panel-heading"><div><span class="eyebrow">CONSULTA / REFERÊNCIAS</span><h2>Tipos de contêiner</h2></div></div><div id="database-form-slot"></div><p class="dash-description">Especificações de referência armazenadas neste navegador. Confira as medidas e capacidades do equipamento utilizado antes da operação.</p>${table}</section>`;
   } catch (error) {
     return `<div id="container-reference-section" class="load-error" role="alert">Não foi possível carregar as referências de contêiner: ${esc(error.message)}</div>`;
   }
@@ -552,7 +553,7 @@ export function renderDatabaseEntryForm(categoryId, record = null) {
       return `<label class="field-label" for="${id}">${esc(field.label)}<select id="${id}" name="${field.name}">${field.options.map((option) => `<option value="${esc(option)}" ${String(value) === option ? "selected" : ""}>${esc(option)}</option>`).join("")}</select></label>`;
     }
     if (field.type === "textarea") return `<label class="field-label" for="${id}">${esc(field.label)}<textarea id="${id}" name="${field.name}" rows="3">${esc(value)}</textarea></label>`;
-    const linked = ["orcamento", "carga", "operacao", "solicitacao"].includes(categoryId) && { servicos: "servico", cargas: "carga", conteineres: "conteiner", operacoes: "operacao", orcamentos: "orcamento" }[field.name];
+    const linked = ["orcamento", "carga", "conteiner", "operacao", "solicitacao"].includes(categoryId) && { servicos: "servico", cargas: "carga", conteineres: "conteiner", operacoes: "operacao", orcamentos: "orcamento" }[field.name];
     if (linked) {
       const selected = String(value).split(",").map((code) => code.trim().toUpperCase());
       const linkedCategory = getDatabaseCategory(linked);
@@ -2180,6 +2181,12 @@ if (app) app.addEventListener("click", async (event) => {
     const chargeForm = document.querySelector('form[data-form="charge"]');
     if (chargeForm) chargeForm.requestSubmit();
     else showSectionError("Abra uma carga com \"Nova carga\" ou \"Editar\" na tabela antes de salvar.");
+    return;
+  }
+  const containerLinks = event.target.closest("[data-edit-container-links]");
+  if (containerLinks) {
+    openDatabaseForm("conteiner", containerLinks.dataset.editContainerLinks, "links");
+    document.querySelector("#database-form-slot")?.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
   const cargoToggle = event.target.closest("[data-toggle-cargo-detail]");

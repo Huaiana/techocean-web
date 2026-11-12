@@ -35,6 +35,7 @@ export const databaseCategories = [
     lookupField: "tipo",
     fields: [
       { name: "tipo", label: "Tipo de contêiner", required: true },
+      { name: "cargas", label: "Tipos de carga vinculados" },
       { name: "situacao", label: "Situação padrão" },
       { name: "comprimento", label: "Comprimento" },
       { name: "largura", label: "Largura" },
@@ -427,6 +428,9 @@ export function readDatabaseCatalog() {
   }
   catalog.nextBudgetCode = nextBudget;
   if (changed && globalThis.localStorage) writeStorage(DATABASE_CATALOG_KEY, catalog);
+  for (const container of catalog.conteiner) {
+    container.cargas = catalog.carga.filter((cargo) => String(cargo.conteineres || "").split(",").some((code) => normalize(code) === normalize(container.codigo))).map((cargo) => cargo.codigo).join(", ");
+  }
   return catalog;
 }
 
@@ -455,6 +459,13 @@ export function saveDatabaseEntry(categoryId, values, id = "") {
   if (categoryId === "orcamento") parseTarifas(record.tarifas);
   const catalog = readDatabaseCatalog();
   const entries = catalog[categoryId];
+  let linkedCargoCodes = null;
+  if (categoryId === "conteiner") {
+    linkedCargoCodes = [...new Set(String(record.cargas || "").split(",").map((code) => code.trim().toUpperCase()).filter(Boolean))];
+    const invalid = linkedCargoCodes.find((code) => !catalog.carga.some((cargo) => normalize(cargo.codigo) === normalize(code)));
+    if (invalid) throw new Error(`ID de carga não encontrado: ${invalid}.`);
+    delete record.cargas;
+  }
   if (categoryId === "carga") {
     for (const [field, linkedCategory] of [["conteineres", "conteiner"], ["servicos", "servico"]]) {
       const codes = String(record[field] || "").split(",").map((code) => code.trim().toUpperCase()).filter(Boolean);
@@ -512,6 +523,17 @@ export function saveDatabaseEntry(categoryId, values, id = "") {
     entries.push({ ...record, id: createId() });
   }
   catalog[categoryId] = entries;
+  if (linkedCargoCodes) {
+    const container = entries.find((entry) => id ? String(entry.id) === String(id) : normalize(entry.tipo) === normalize(record.tipo));
+    if (container) {
+      for (const cargo of catalog.carga) {
+        const codes = String(cargo.conteineres || "").split(",").map((code) => code.trim()).filter((code) => code && normalize(code) !== normalize(container.codigo));
+        if (linkedCargoCodes.includes(cargo.codigo.toUpperCase())) codes.push(container.codigo);
+        cargo.conteineres = [...new Set(codes)].join(", ");
+      }
+    }
+  }
+  for (const container of catalog.conteiner) delete container.cargas;
   writeStorage(DATABASE_CATALOG_KEY, catalog);
   return entries;
 }
