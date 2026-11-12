@@ -28,3 +28,4 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+- The Techocean site lives in src/legacy (plain JS from the original repo) and is mounted once from __root; TanStack routes index/$ render nothing so the legacy router owns all paths without remounting.
