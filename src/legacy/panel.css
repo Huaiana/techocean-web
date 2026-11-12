@@ -44,3 +44,6 @@
   .dashboard .inline-form-grid>.field-label:has(textarea),
   .dashboard [data-form="charge"] .inline-form-grid>.field-label:has([name="tipoCarga"]){grid-column:auto}
 }
+
+.clickable-row { cursor: pointer; }
+.clickable-row:hover td, .clickable-row:focus-visible td { background: color-mix(in srgb, currentColor 8%, transparent); }
