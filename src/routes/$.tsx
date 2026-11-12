@@ -8,6 +8,8 @@ export const Route = createFileRoute("/$")({
       { name: "description", content: "Área de clientes e painel da Techocean para operações portuárias." },
       { property: "og:title", content: "Techocean — Painel e Cadastro" },
       { property: "og:description", content: "Área de clientes e painel da Techocean para operações portuárias." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => null,
