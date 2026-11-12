@@ -1115,7 +1115,7 @@ async function handleResourceAction(action, slug, id, label = "") {
     return;
   }
   try {
-    if (action !== "print" || !record) record = await get(`${definition.endpoint}/${encodeURIComponent(id)}`);
+    if (action !== "print" || !record) record = await getRecordById(definition.endpoint, id);
     record = record?.data || record;
     if (slug === "servico" && action !== "edit" && action !== "edit-value") {
       const value = readServiceValues()[record.id];
@@ -2612,6 +2612,20 @@ function renderRoute() {
     }
   }
   else renderNotFound();
+}
+
+// The API has no "get one" route for some lists (e.g. /clientes/:id): fall back to the list.
+async function getRecordById(endpoint, id) {
+  try {
+    return await get(`${endpoint}/${encodeURIComponent(id)}`);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 404) throw error;
+    const list = await get(endpoint);
+    const rows = Array.isArray(list) ? list : list?.data || list?.content || [];
+    const found = rows.find((row) => String(row?.id) === String(id));
+    if (!found) throw error;
+    return found;
+  }
 }
 
 if (app) renderRoute();
