@@ -410,11 +410,13 @@ export function renderBackupSection(records = []) {
 const chargeFields = [["descricao", "Descrição", "text"], ["peso", "Peso (t)", "number"], ["volume", "Volume (m³)", "number"], ["tipoCarga", "Nome da carga", "text"], ["origem", "Origem", "text"], ["destino", "Destino", "text"]];
 
 function renderCargas(records) {
+  records = records.map((record) => ({ ...record, tipoCarga: record.tipoCarga ?? record.tipo_carga ?? "" }));
+  cachedRecords.set("carga", records);
   const rows = records.map((record) => `<tr><td>${valueText(record.id)}</td>${chargeFields.map(([name]) => `<td>${valueText(record[name])}</td>`).join("")}<td><div class="row-actions"><button class="small-action" data-charge-action="view" data-id="${esc(record.id)}">Ver</button><button class="small-action" data-charge-action="edit" data-id="${esc(record.id)}">Editar</button><button class="small-action" data-charge-action="print" data-id="${esc(record.id)}">Imprimir</button>${canDeleteOperational() ? `<button class="small-action danger-action" data-charge-action="delete" data-id="${esc(record.id)}">Excluir</button>` : ""}</div></td></tr>`).join("");
   const table = records.length
     ? `<div class="table-scroll"><table class="records-table"><thead><tr><th>Código</th>${chargeFields.map(([, title]) => `<th>${esc(title)}</th>`).join("")}<th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`
     : `<div class="empty-state"><span>▱</span><strong>Nenhuma carga cadastrada</strong><p>Cadastre uma carga para começar a acompanhar as especificações.</p></div>`;
-  return `<section class="data-panel"><div class="panel-heading"><div><span class="eyebrow">OPERAÇÕES / REGISTROS</span><h2>Cargas cadastradas <span class="count-pill">${records.length}</span></h2></div><div class="panel-actions"><button class="button button-outline compact" data-reload>↻ <span>Editar</span></button><button class="button button-outline compact" type="button" data-save-charge-form>✓ <span>Salvar</span></button><button class="button button-primary compact" data-action="new-charge">＋ Nova carga</button></div></div><div id="charge-form-slot"></div>${table}</section>${renderCargoReferenceSection()}`;
+  return `<section class="data-panel"><div class="panel-heading"><div><span class="eyebrow">OPERAÇÕES / REGISTROS</span><h2>Cargas cadastradas <span class="count-pill">${records.length}</span></h2></div><div class="panel-actions"><button class="button button-outline compact" type="button" data-edit-charge-form><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5-13 13-6 1 1-6Z"/><path d="m14 5 5 5"/></svg> <span>Editar</span></button><button class="button button-outline compact" type="button" data-save-charge-form>✓ <span>Salvar</span></button><button class="button button-primary compact" data-action="new-charge">＋ Nova carga</button></div></div><div id="charge-form-slot"></div>${table}</section>${renderCargoReferenceSection()}`;
 }
 
 export function renderCargoReferenceSection() {
@@ -1261,6 +1263,7 @@ async function handleChargeAction(action, id) {
   }
   if (action === "edit") {
     showChargeForm(record);
+    document.querySelector('form[data-form="charge"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
   } else if (action === "print") {
     try {
       record = chargeWithReference(record);
@@ -2157,6 +2160,19 @@ if (app) app.addEventListener("click", async (event) => {
   if (cargoRefEdit) {
     openDatabaseForm("carga", cargoRefEdit.dataset.editCargoRef);
     document.querySelector("#database-form-slot")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (event.target.closest("[data-edit-charge-form]")) {
+    const form = document.querySelector('form[data-form="charge"]');
+    if (form?.dataset.chargeId) {
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+      form.elements.namedItem("tipoCarga")?.focus();
+      return;
+    }
+    const records = cachedRecords.get("carga") || [];
+    if (!records.length) showSectionError("Nenhuma carga cadastrada para editar.");
+    else if (records.length === 1) await handleChargeAction("edit", records[0].id);
+    else modal("Selecionar carga para editar", `<div class="table-scroll"><table class="records-table"><thead><tr><th>ID</th><th>Nome da carga</th><th>Descrição</th><th>Ações</th></tr></thead><tbody>${records.map((record) => `<tr><td>${valueText(record.id)}</td><td>${valueText(record.tipoCarga)}</td><td>${valueText(record.descricao)}</td><td><button type="button" class="small-action" data-charge-action="edit" data-id="${esc(record.id)}">Editar</button></td></tr>`).join("")}</tbody></table></div>`);
     return;
   }
   if (event.target.closest("[data-save-charge-form]")) {
