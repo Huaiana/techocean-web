@@ -1,6 +1,6 @@
 import { catalogoServicos } from "./catalogo-servicos.js";
 import { catalogoConteineres } from "./catalogo-conteineres.js";
-import { catalogoCargas } from "./catalogo-cargas.js";
+import { catalogoCargas, cargasAntigas } from "./catalogo-cargas.js";
 import { catalogoOperacoes } from "./catalogo-operacoes.js";
 import { catalogoSolicitacoes } from "./catalogo-solicitacoes.js";
 import { catalogoOrcamentos, fonteTarifariaHistorica } from "./catalogo-orcamentos.js";
@@ -22,6 +22,7 @@ export const databaseCategories = [
       { name: "conteineres", label: "IDs dos contêineres (separados por vírgula)" },
       { name: "servicos", label: "IDs dos serviços (separados por vírgula)" },
       { name: "descricao", label: "Descrição" },
+      { name: "informacoes", label: "Informações" },
       { name: "peso", label: "Peso (t)", type: "number" },
       { name: "volume", label: "Volume (m³)", type: "number" },
       { name: "origem", label: "Origem" },
@@ -247,6 +248,21 @@ export function readDatabaseCatalog() {
     changed = true;
   }
   catalog.cargoReferenceVersion = 1;
+  if (data.cargoReferenceVersion2 !== 1) {
+    const oldNames = new Set(cargasAntigas.map(normalize));
+    const newNames = new Set(catalogoCargas.map((r) => normalize(r.tipoCarga)));
+    const legacy = catalog.carga.filter((e) => oldNames.has(normalize(e.tipoCarga)));
+    const reusable = legacy.slice().sort((a, b) => String(a.codigo || "~").localeCompare(String(b.codigo || "~")));
+    const kept = catalog.carga.filter((e) => !oldNames.has(normalize(e.tipoCarga)) && !newNames.has(normalize(e.tipoCarga)));
+    const refreshed = catalogoCargas.map((reference) => {
+      const current = catalog.carga.find((e) => normalize(e.tipoCarga) === normalize(reference.tipoCarga)) || reusable.shift() || { id: createId() };
+      const containerIds = reference.conteineres.map((tipo) => catalog.conteiner.find((entry) => normalize(entry.tipo) === normalize(tipo))?.codigo).filter(Boolean);
+      return { ...current, tipoCarga: reference.tipoCarga, descricao: reference.descricao, informacoes: reference.informacoes, conteineres: containerIds.join(", ") };
+    });
+    catalog.carga = [...refreshed, ...kept];
+    changed = true;
+  }
+  catalog.cargoReferenceVersion2 = 1;
   const cargoCodes = new Set(catalog.carga.map((entry) => entry.codigo).filter(Boolean));
   let nextCargo = Number.isSafeInteger(data.nextCargoCode) && data.nextCargoCode > 0 ? data.nextCargoCode : 1;
   for (const code of cargoCodes) {

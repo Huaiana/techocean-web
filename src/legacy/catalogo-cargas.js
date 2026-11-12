@@ -1,26 +1,10 @@
-// Tipos extraídos do uso principal informado para cada contêiner.
+// Tipos de carga de referência. Os IDs (CRG-...) já existentes são mantidos.
 export const catalogoCargas = [
-  { tipoCarga: "Cargas secas gerais", conteineres: ["Dry Box 20'"] },
-  { tipoCarga: "Caixas", conteineres: ["Dry Box 20'"] },
-  { tipoCarga: "Paletes", conteineres: ["Dry Box 20'"] },
-  { tipoCarga: "Sacarias", conteineres: ["Dry Box 20'"] },
-  { tipoCarga: "Cargas secas volumosas e leves", conteineres: ["Dry Box 40'"] },
-  { tipoCarga: "Cargas muito altas ou leves que exigem mais volume", conteineres: ["High Cube (HC) 40'"] },
-  { tipoCarga: "Cargas refrigeradas ou congeladas", conteineres: ["Reefer 20'"] },
-  { tipoCarga: "Frutas", conteineres: ["Reefer 20'"] },
-  { tipoCarga: "Carnes", conteineres: ["Reefer 20'"] },
-  { tipoCarga: "Grandes volumes de cargas perecíveis", conteineres: ["Reefer 40' HC"] },
-  { tipoCarga: "Cargas farmacêuticas", conteineres: ["Reefer 40' HC"] },
-  { tipoCarga: "Cargas altas carregadas por cima com guindastes", conteineres: ["Open Top 20'"] },
-  { tipoCarga: "Máquinas pesadas", conteineres: ["Open Top 40'"] },
-  { tipoCarga: "Equipamentos com excesso de altura", conteineres: ["Open Top 40'"] },
-  { tipoCarga: "Cargas pesadas e com excesso de largura ou altura", conteineres: ["Flat Rack 20'"] },
-  { tipoCarga: "Veículos pesados", conteineres: ["Flat Rack 40'"] },
-  { tipoCarga: "Barcos", conteineres: ["Flat Rack 40'"] },
-  { tipoCarga: "Turbinas", conteineres: ["Flat Rack 40'"] },
-  { tipoCarga: "Grandes estruturas", conteineres: ["Flat Rack 40'"] },
-  { tipoCarga: "Líquidos a granel", conteineres: ["Isotank 20'"] },
-  { tipoCarga: "Produtos químicos", conteineres: ["Isotank 20'"] },
-  { tipoCarga: "Óleos", conteineres: ["Isotank 20'"] },
-  { tipoCarga: "Gases", conteineres: ["Isotank 20'"] },
+  { tipoCarga: "Carga Geral", descricao: "Caixas, sacas ou pallets.", informacoes: "Eletrônicos, roupas e alimentos industrializados.", conteineres: ["Dry Box 20'", "Dry Box 40'"] },
+  { tipoCarga: "Granéis Sólidos", descricao: "Mercadorias não embaladas, movimentadas em grandes quantidades.", informacoes: "Soja, milho, minério de ferro e fertilizantes.", conteineres: [] },
+  { tipoCarga: "Granéis Líquidos", descricao: "Substâncias fluídas.", informacoes: "Petróleo, combustíveis, óleos vegetais e produtos químicos, transportados por tubulações.", conteineres: ["Isotank 20'"] },
+  { tipoCarga: "Carga Conteinerizada", descricao: "Mercadorias dentro de contêineres padronizados, otimizando o transporte de produtos variados, de peças a bens de consumo.", informacoes: "", conteineres: ["Dry Box 20'", "Dry Box 40'", "High Cube (HC) 40'", "Reefer 20'", "Reefer 40' HC"] },
 ];
+
+// Nomes antigos substituídos pelos quatro tipos acima.
+export const cargasAntigas = ["Cargas secas gerais", "Caixas", "Paletes", "Sacarias", "Cargas secas volumosas e leves", "Cargas muito altas ou leves que exigem mais volume", "Cargas refrigeradas ou congeladas", "Frutas", "Carnes", "Grandes volumes de cargas perecíveis", "Cargas farmacêuticas", "Cargas altas carregadas por cima com guindastes", "Máquinas pesadas", "Equipamentos com excesso de altura", "Cargas pesadas e com excesso de largura ou altura", "Veículos pesados", "Barcos", "Turbinas", "Grandes estruturas", "Líquidos a granel", "Produtos químicos", "Óleos", "Gases"];
