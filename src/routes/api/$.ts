@@ -15,7 +15,7 @@ async function relay({ request }: { request: Request }) {
   const res = await fetch(target, {
     method: request.method,
     headers,
-    body: hasBody ? await request.arrayBuffer() : undefined,
+    body: hasBody ? await request.arrayBuffer() : null,
   });
   const out = new Headers();
   const type = res.headers.get("content-type");
