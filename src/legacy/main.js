@@ -414,7 +414,7 @@ function renderCargas(records) {
   const table = records.length
     ? `<div class="table-scroll"><table class="records-table"><thead><tr><th>Código</th>${chargeFields.map(([, title]) => `<th>${esc(title)}</th>`).join("")}<th>Ações</th></tr></thead><tbody>${rows}</tbody></table></div>`
     : `<div class="empty-state"><span>▱</span><strong>Nenhuma carga cadastrada</strong><p>Cadastre uma carga para começar a acompanhar as especificações.</p></div>`;
-  return `<section class="data-panel"><div class="panel-heading"><div><span class="eyebrow">OPERAÇÕES / REGISTROS</span><h2>Cargas cadastradas <span class="count-pill">${records.length}</span></h2></div><div class="panel-actions"><button class="button button-outline compact" data-reload>↻ <span>Atualizar</span></button><button class="button button-primary compact" data-action="new-charge">＋ Nova carga</button></div></div><div id="charge-form-slot"></div>${table}</section>${renderCargoReferenceSection()}`;
+  return `<section class="data-panel"><div class="panel-heading"><div><span class="eyebrow">OPERAÇÕES / REGISTROS</span><h2>Cargas cadastradas <span class="count-pill">${records.length}</span></h2></div><div class="panel-actions"><button class="button button-outline compact" data-reload>↻ <span>Editar</span></button><button class="button button-primary compact" data-action="new-charge">＋ Nova carga</button></div></div><div id="charge-form-slot"></div>${table}</section>${renderCargoReferenceSection()}`;
 }
 
 export function renderCargoReferenceSection() {
