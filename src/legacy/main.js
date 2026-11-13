@@ -748,8 +748,13 @@ function statusPill(key, value) {
 }
 
 export function renderMessages(records) {
-  if (!records.length) return `<div class="data-panel"><div class="panel-heading"><div><span class="eyebrow">FALE CONOSCO</span><h2>Caixa de entrada <span class="count-pill">0</span></h2></div><button class="button button-outline compact" data-reload>↻ Atualizar</button></div><div class="empty-state"><span>✉</span><strong>Nenhuma mensagem recebida</strong><p>As mensagens enviadas pelo formulário do site aparecerão aqui.</p></div></div>`;
-  return `<div class="data-panel"><div class="panel-heading"><div><span class="eyebrow">FALE CONOSCO</span><h2>Caixa de entrada <span class="count-pill">${records.length}</span></h2></div><button class="button button-outline compact" data-reload>↻ Atualizar</button></div><div class="message-list">${records.map((message) => `<article class="message-card"><div class="message-heading"><div class="avatar">${esc((message.nome || "?").slice(0, 1).toUpperCase())}</div><div><h2>${valueText(message.nome)}</h2><p>${valueText(message.email)} · ${message.criadoEm ? valueText(new Date(message.criadoEm).toLocaleString("pt-BR")) : "Contato recebido"}</p></div><span class="status-pill">${valueText(message.status || "Recebida")}</span></div><p class="message-content">${valueText(message.conteudo || message.mensagem || message.texto)}</p>${message.resposta ? `<div class="reply-sent"><strong>Resposta enviada</strong><p>${valueText(message.resposta)}</p></div>` : ""}${message.id ? `<form class="inline-reply" data-form="reply" data-message-id="${esc(message.id)}"><label class="sr-only" for="reply-${esc(message.id)}">Resposta</label><input id="reply-${esc(message.id)}" name="resposta" required placeholder="Escreva uma resposta…"><button class="button button-primary compact">Responder ↗</button></form>` : ""}</article>`).join("")}</div></div>`;
+  const readIds = new Set(JSON.parse(localStorage.getItem("techocean.readMessages") || "[]"));
+  const isRead = (m) => Boolean(m.resposta) || readIds.has(String(m.id));
+  const unread = records.filter((m) => !isRead(m));
+  const read = records.filter(isRead);
+  const card = (message) => `<article class="message-card msg-box${isRead(message) ? " is-read" : ""}" data-msg-id="${esc(message.id ?? "")}"><div class="message-heading"><div class="avatar">${esc((message.nome || "?").slice(0, 1).toUpperCase())}</div><div><h2>${valueText(message.nome)}</h2><p>${valueText(message.email)} · ${message.criadoEm ? valueText(new Date(message.criadoEm).toLocaleString("pt-BR")) : "Contato recebido"}</p></div><span class="status-pill">${isRead(message) ? "Lida" : "Não lida"}</span></div><p class="message-content">${valueText(message.conteudo || message.mensagem || message.texto)}</p>${message.resposta ? `<div class="reply-sent"><strong>Resposta enviada</strong><p>${valueText(message.resposta)}</p></div>` : ""}${message.id ? `<div class="msg-actions"><button type="button" class="button button-outline compact" data-msg-reply>Responder</button>${isRead(message) ? "" : `<button type="button" class="button button-outline compact" data-msg-mark>Marcar como lida</button>`}</div><form class="inline-reply" data-form="reply" data-message-id="${esc(message.id)}" hidden><label class="sr-only" for="reply-${esc(message.id)}">Resposta</label><textarea id="reply-${esc(message.id)}" name="resposta" required rows="3" placeholder="Escreva uma resposta…"></textarea><button class="button button-primary compact">Enviar ↗</button></form>` : ""}</article>`;
+  const box = (title, list, key) => `<section class="msg-column" data-msg-col="${key}"><h3>${title} <span class="count-pill">${list.length}</span></h3>${list.length ? `<div class="message-list">${list.map(card).join("")}</div>` : `<p class="muted small">Nenhuma mensagem.</p>`}</section>`;
+  return `<div class="data-panel"><div class="panel-heading"><div><span class="eyebrow">FALE CONOSCO</span><h2>Caixa de entrada <span class="count-pill">${records.length}</span></h2></div></div>${records.length ? `<div class="msg-boxes">${box("Não lidas", unread, "unread")}${box("Lidas", read, "read")}</div>` : `<div class="empty-state"><span>✉</span><strong>Nenhuma mensagem recebida</strong><p>As mensagens enviadas pelo formulário do site aparecerão aqui.</p></div>`}</div>`;
 }
 
 function renderAppointments(records, slug) {
@@ -2688,3 +2693,27 @@ async function getRecordById(endpoint, id) {
 if (app) renderRoute();
 // Plain-JS app: any edit needs a full page reload in the preview.
 if (import.meta.hot) import.meta.hot.decline();
+
+document.addEventListener("click", (event) => {
+  const card = event.target.closest?.(".msg-box");
+  if (!card) return;
+  const id = card.dataset.msgId;
+  const markRead = () => {
+    const ids = new Set(JSON.parse(localStorage.getItem("techocean.readMessages") || "[]"));
+    ids.add(String(id));
+    localStorage.setItem("techocean.readMessages", JSON.stringify([...ids]));
+  };
+  if (event.target.closest("[data-msg-reply]")) {
+    const form = card.querySelector("form[data-form=reply]");
+    form.hidden = !form.hidden;
+    if (!form.hidden) form.querySelector("textarea").focus();
+  } else if (event.target.closest("[data-msg-mark]")) {
+    markRead();
+    const target = document.querySelector('[data-msg-col="read"] .message-list') || (() => { const col = document.querySelector('[data-msg-col="read"]'); col.querySelector("p")?.remove(); const l = document.createElement("div"); l.className = "message-list"; col.append(l); return l; })();
+    card.classList.add("is-read");
+    card.querySelector(".status-pill").textContent = "Lida";
+    event.target.closest("[data-msg-mark]").remove();
+    target.prepend(card);
+    document.querySelectorAll("[data-msg-col] h3 .count-pill").forEach((pill) => { pill.textContent = pill.closest("[data-msg-col]").querySelectorAll(".msg-box").length; });
+  }
+});
