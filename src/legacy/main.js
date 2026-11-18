@@ -3,6 +3,7 @@ import { formatarTarifaServico, localizarTarifaServico } from "./catalogo-servic
 import { parseTarifas } from "./tarifas-orcamento.js";
 import { catalogoSolicitacoes } from "./catalogo-solicitacoes.js";
 import { startBrasiliaClock, updateClockVisibility } from "./brasilia-clock.js";
+import { exampleMessages, readMessageIds, splitMessages } from "./message-state.js";
 import {
   databaseCategories,
   deleteDatabaseEntry,
@@ -31,6 +32,7 @@ let modalReturnFocus = null;
 let currentUser = null;
 let authNotice = "";
 const cachedRecords = new Map();
+let messageExamples = null;
 const budgetServiceOptions = new WeakMap();
 const sections = [
   { slug: "carga", name: "Carga", description: "Cadastro e consulta de cargas.", endpoint: "/cargas", columns: ["id", "descricao", "peso", "volume", "tipoCarga", "origem", "destino"] },
@@ -392,7 +394,7 @@ async function loadSection(section, databaseCategory = "servico") {
       } catch (referenceError) {
         references = `<div class="load-error" role="alert">Não foi possível carregar as referências locais: ${esc(referenceError.message)}</div>`;
       }
-      host.innerHTML = `<div class="load-error" role="alert"><p>${esc(error.message)}</p>${section.slug === "solicitacao" ? "" : '<button class="button button-outline" data-reload>Atualizar</button>'}</div>${references}`;
+      host.innerHTML = `<div class="load-error" role="alert"><p>${esc(error.message)}</p>${section.slug === "solicitacao" ? "" : `<button class="button button-outline" data-reload>${section.slug === "mensagens" ? "Tentar novamente" : "Atualizar"}</button>`}</div>${section.slug === "mensagens" ? renderMessages([], { unavailable: true }) : references}`;
       if (section.slug === "solicitacao") {
         host.insertAdjacentHTML("afterbegin", '<div id="shared-solicitations"><p class="loading-state">Carregando solicitações compartilhadas…</p></div>');
         await loadSharedSolicitations(host.querySelector("#shared-solicitations"));
@@ -747,14 +749,14 @@ function statusPill(key, value) {
   return rendered;
 }
 
-export function renderMessages(records) {
-  const readIds = new Set(JSON.parse(localStorage.getItem("techocean.readMessages") || "[]"));
+export function renderMessages(records, { unavailable = false } = {}) {
+  const readIds = readMessageIds(globalThis.localStorage);
+  const displayed = messageExamples || records;
+  const { unread, read } = splitMessages(displayed, readIds);
   const isRead = (m) => Boolean(m.resposta) || readIds.has(String(m.id));
-  const unread = records.filter((m) => !isRead(m));
-  const read = records.filter(isRead);
-  const card = (message) => `<article class="message-card msg-box${isRead(message) ? " is-read" : ""}" data-msg-id="${esc(message.id ?? "")}"><div class="message-heading"><div class="avatar">${esc((message.nome || "?").slice(0, 1).toUpperCase())}</div><div><h2>${valueText(message.nome)}</h2><p>${valueText(message.email)} · ${message.criadoEm ? valueText(new Date(message.criadoEm).toLocaleString("pt-BR")) : "Contato recebido"}</p></div><span class="status-pill">${isRead(message) ? "Lida" : "Não lida"}</span></div><p class="message-content">${valueText(message.conteudo || message.mensagem || message.texto)}</p>${message.resposta ? `<div class="reply-sent"><strong>Resposta enviada</strong><p>${valueText(message.resposta)}</p></div>` : ""}${message.id ? `<div class="msg-actions"><button type="button" class="button button-outline compact" data-msg-reply>Responder</button>${isRead(message) ? "" : `<button type="button" class="button button-outline compact" data-msg-mark>Marcar como lida</button>`}</div><form class="inline-reply" data-form="reply" data-message-id="${esc(message.id)}" hidden><label class="sr-only" for="reply-${esc(message.id)}">Resposta</label><textarea id="reply-${esc(message.id)}" name="resposta" required rows="3" placeholder="Escreva uma resposta…"></textarea><button class="button button-primary compact">Enviar ↗</button></form>` : ""}</article>`;
-  const box = (title, list, key) => `<section class="msg-column" data-msg-col="${key}"><h3>${title} <span class="count-pill">${list.length}</span></h3>${list.length ? `<div class="message-list">${list.map(card).join("")}</div>` : `<p class="muted small">Nenhuma mensagem.</p>`}</section>`;
-  return `<div class="data-panel"><div class="panel-heading"><div><span class="eyebrow">FALE CONOSCO</span><h2>Caixa de entrada <span class="count-pill">${records.length}</span></h2></div></div>${records.length ? `<div class="msg-boxes">${box("Não lidas", unread, "unread")}${box("Lidas", read, "read")}</div>` : `<div class="empty-state"><span>✉</span><strong>Nenhuma mensagem recebida</strong><p>As mensagens enviadas pelo formulário do site aparecerão aqui.</p></div>`}</div>`;
+  const card = (message) => `<article class="message-card msg-box${isRead(message) ? " is-read" : ""}" data-msg-id="${esc(message.id ?? "")}"><div class="message-heading"><div class="avatar">${esc((message.nome || "?").slice(0, 1).toUpperCase())}</div><div class="msg-sender"><h2>${valueText(message.nome)}</h2><p>${valueText(message.email)}</p><p>${message.criadoEm ? valueText(new Date(message.criadoEm).toLocaleString("pt-BR")) : message.exemplo ? "Mensagem de exemplo" : "Contato recebido"}</p></div><span class="status-pill">${isRead(message) ? "Lida" : "Não lida"}</span></div><p class="message-content">${valueText(message.conteudo || message.mensagem || message.texto)}</p>${message.resposta ? `<div class="reply-sent"><strong>${message.exemplo ? "Resposta de exemplo" : "Resposta enviada"}</strong><p>${valueText(message.resposta)}</p></div>` : ""}${message.id != null ? `<div class="msg-actions"><button type="button" class="button button-outline compact" data-msg-reply aria-expanded="false">↩ Responder</button>${isRead(message) ? "" : `<button type="button" class="button button-outline compact" data-msg-mark>✓ Marcar como lida</button>`}</div><form class="inline-reply" data-form="reply" data-message-id="${esc(message.id)}" ${message.exemplo ? 'data-example="true"' : ""} hidden><label class="field-label" for="reply-${esc(message.id)}">Resposta</label><textarea id="reply-${esc(message.id)}" name="resposta" required rows="3" placeholder="Escreva uma resposta…"></textarea><div class="msg-actions"><button type="submit" class="button button-primary compact">Enviar ↗</button><button type="button" class="button button-outline compact" data-msg-cancel>Cancelar</button></div><p class="form-feedback" role="status"></p></form>` : ""}</article>`;
+  const box = (title, list, key) => `<section class="msg-column" data-msg-col="${key}" aria-label="${title}"><h3><span aria-hidden="true">${key === "unread" ? "✉" : "✓"}</span>${title} <span class="count-pill">${list.length}</span></h3><div class="message-list">${list.map(card).join("")}</div><div class="msg-empty" ${list.length ? "hidden" : ""}><span aria-hidden="true">${key === "unread" ? "✉" : "✓"}</span><strong>${unavailable && !messageExamples ? "Consulta indisponível" : `Nenhuma mensagem ${key === "unread" ? "não lida" : "lida"}`}</strong></div></section>`;
+  return `<section class="message-inbox"><div class="panel-heading"><div><span class="eyebrow">FALE CONOSCO</span><h2>${messageExamples ? "Mensagens de exemplo" : "Caixa de entrada"} <span class="count-pill">${unavailable && !messageExamples ? "—" : displayed.length}</span></h2></div><button type="button" class="button button-outline compact" data-msg-examples>${messageExamples ? "Voltar às mensagens reais" : "Ver exemplo"}</button></div>${messageExamples ? '<p class="msg-example-note" role="status">Exemplos · Nenhuma resposta será enviada a um contato real.</p>' : ""}<div class="msg-boxes">${box("Não lidas", unread, "unread")}${box("Lidas", read, "read")}</div></section>`;
 }
 
 function renderAppointments(records, slug) {
@@ -2012,6 +2014,14 @@ async function handleSubmit(event) {
         await saveResource(form);
         break;
       case "reply":
+        if (form.dataset.example === "true") {
+          const example = messageExamples?.find((m) => String(m.id) === form.dataset.messageId);
+          if (!example) throw new Error("Abra novamente as mensagens de exemplo.");
+          example.resposta = fields.resposta;
+          const host = document.querySelector("#section-content");
+          if (host) host.innerHTML = `<p class="inline-success" role="status">Resposta de exemplo salva. Nenhum envio real foi realizado.</p>${renderMessages(cachedRecords.get("mensagens") || [])}`;
+          break;
+        }
         await put(`/mensagens/contatos/${form.dataset.messageId}/resposta`, { resposta: fields.resposta });
         await reloadCurrentSection("Resposta enviada com sucesso.");
         break;
@@ -2695,25 +2705,44 @@ if (app) renderRoute();
 if (import.meta.hot) import.meta.hot.decline();
 
 document.addEventListener("click", (event) => {
+  if (event.target.closest?.("[data-msg-examples]")) {
+    messageExamples = messageExamples ? null : exampleMessages.map((m) => ({ ...m }));
+    const host = document.querySelector("#section-content");
+    if (messageExamples && host) host.innerHTML = renderMessages([]);
+    else void loadSection(sections.find((s) => s.slug === "mensagens"));
+    return;
+  }
   const card = event.target.closest?.(".msg-box");
   if (!card) return;
   const id = card.dataset.msgId;
   const markRead = () => {
-    const ids = new Set(JSON.parse(localStorage.getItem("techocean.readMessages") || "[]"));
+    if (messageExamples) return;
+    const ids = readMessageIds(globalThis.localStorage);
     ids.add(String(id));
     localStorage.setItem("techocean.readMessages", JSON.stringify([...ids]));
   };
   if (event.target.closest("[data-msg-reply]")) {
     const form = card.querySelector("form[data-form=reply]");
+    if (!form) return;
     form.hidden = !form.hidden;
+    event.target.closest("[data-msg-reply]").setAttribute("aria-expanded", String(!form.hidden));
     if (!form.hidden) form.querySelector("textarea").focus();
+  } else if (event.target.closest("[data-msg-cancel]")) {
+    card.querySelector("form[data-form=reply]").hidden = true;
+    const reply = card.querySelector("[data-msg-reply]");
+    reply.setAttribute("aria-expanded", "false");
+    reply.focus();
   } else if (event.target.closest("[data-msg-mark]")) {
-    markRead();
+    try { markRead(); } catch { showSectionError("Não foi possível guardar o status de leitura neste navegador."); return; }
     const target = document.querySelector('[data-msg-col="read"] .message-list') || (() => { const col = document.querySelector('[data-msg-col="read"]'); col.querySelector("p")?.remove(); const l = document.createElement("div"); l.className = "message-list"; col.append(l); return l; })();
     card.classList.add("is-read");
     card.querySelector(".status-pill").textContent = "Lida";
     event.target.closest("[data-msg-mark]").remove();
     target.prepend(card);
-    document.querySelectorAll("[data-msg-col] h3 .count-pill").forEach((pill) => { pill.textContent = pill.closest("[data-msg-col]").querySelectorAll(".msg-box").length; });
+    document.querySelectorAll("[data-msg-col]").forEach((col) => {
+      const count = col.querySelectorAll(".msg-box").length;
+      col.querySelector("h3 .count-pill").textContent = count;
+      col.querySelector(".msg-empty").hidden = count > 0;
+    });
   }
 });
